@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Create Profile</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#05070c;
+color:white;
+}
+
+.glow{
+position:absolute;
+width:500px;
+height:500px;
+background:radial-gradient(circle,#1e6bff 0%,transparent 70%);
+filter:blur(120px);
+}
+
+.card{
+width:350px;
+padding:30px;
+border-radius:16px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+box-shadow:0 0 30px rgba(0,0,0,0.5);
+z-index:1;
+text-align:center;
+}
+
+.logo{
+font-size:22px;
+margin-bottom:20px;
+}
+
+.avatar{
+width:90px;
+height:90px;
+border-radius:50%;
+background:#111827;
+margin:0 auto 20px auto;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+cursor:pointer;
+overflow:hidden;
+}
+
+.avatar img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:none;
+border-radius:8px;
+background:#111827;
+color:white;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#2563eb;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="glow"></div>
+
+<div class="card">
+
+<div class="logo">Create Profile</div>
+
+<div class="avatar" onclick="document.getElementById('avatarInput').click()">
+<span id="plus">+</span>
+<img id="avatarPreview" style="display:none">
+</div>
+
+<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="previewAvatar(event)">
+
+<input id="username" placeholder="Username">
+<input id="fullname" placeholder="Full Name">
+
+<select id="account_type">
+<option value="user">Normal User</option>
+<option value="creator">Creator</option>
+</select>
+
+<button onclick="saveProfile()">Continue</button>
+
+</div>
+
+<script>
+
+<!-- 🔑 PUT YOUR KEYS HERE -->
+const supabaseUrl = "https://fijhdnytbqbqouyonzfq.supabase.co"
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpamhkbnl0YnFicW91eW9uemZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjU1MzIsImV4cCI6MjA4ODg0MTUzMn0.Cq5uWbhL9sq-HOo7RJPGOOpI7baY4tnzEvbehGorVaM"
+
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+/* preview avatar */
+function previewAvatar(event){
+const file = event.target.files[0]
+
+if(file){
+const preview = document.getElementById("avatarPreview")
+preview.src = URL.createObjectURL(file)
+preview.style.display="block"
+document.getElementById("plus").style.display="none"
+}
+}
+
+async function saveProfile(){
+
+const username = document.getElementById("username").value
+const fullname = document.getElementById("fullname").value
+const type = document.getElementById("account_type").value
+
+if(!username || !fullname){
+alert("Username and Full Name required")
+return
+}
+
+/* 🔒 check logged-in user */
+const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+
+if(userError || !user){
+alert("You are not logged in. Please login again.")
+window.location.href = "login.html"
+return
+}
+
+let avatarUrl = null
+const file = document.getElementById("avatarInput").files[0]
+
+/* upload avatar */
+if(file){
+
+const filePath = user.id + "_" + file.name
+
+const { error: uploadError } = await supabaseClient.storage
+.from("avatars")
+.upload(filePath, file)
+
+if(uploadError){
+alert("Image upload failed: " + uploadError.message)
+return
+}
+
+const { data } = supabaseClient.storage
+.from("avatars")
+.getPublicUrl(filePath)
+
+avatarUrl = data.publicUrl
+}
+
+/* insert profile */
+const { error } = await supabaseClient
+.from("profiles")
+.insert([{
+user_id: user.id,
+username: username,
+full_name: fullname,
+avatar_url: avatarUrl,
+account_type: type
+}])
+
+if(error){
+alert(error.message)
+}else{
+window.location.href = "screen.html"
+}
+
+}
+
+</script>
+
+</body>
+
+</html>

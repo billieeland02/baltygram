@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BaltyGram Login</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#05070c;
+color:white;
+}
+
+.glow{
+position:absolute;
+width:500px;
+height:500px;
+background:radial-gradient(circle,#1e6bff 0%,transparent 70%);
+filter:blur(120px);
+}
+
+.card{
+width:340px;
+padding:30px;
+border-radius:16px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+box-shadow:0 0 30px rgba(0,0,0,0.5);
+z-index:1;
+}
+
+.logo{
+font-size:28px;
+text-align:center;
+margin-bottom:5px;
+}
+
+.tag{
+text-align:center;
+font-size:13px;
+color:#9fa8ff;
+margin-bottom:25px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:none;
+border-radius:8px;
+background:#111827;
+color:white;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#2563eb;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+.links{
+margin-top:15px;
+font-size:13px;
+text-align:center;
+}
+
+.links a{
+color:#60a5fa;
+text-decoration:none;
+}
+
+.footer{
+position:absolute;
+bottom:20px;
+font-size:12px;
+color:#888;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="glow"></div>
+
+<div class="card">
+
+<div class="logo">BaltyGram</div>
+<div class="tag">Connect. Share. Vibe.</div>
+
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<div class="links">
+Don't have an account?
+<a href="index.html">Sign Up</a>
+
+<br><br>
+
+<a href="https://baltygram-policy.netlify.app">Terms & conditions</a>
+</div>
+
+</div>
+
+<div class="footer">
+© BaltStudios 2026
+</div>
+
+<script>
+
+<!-- 🔑 PUT YOUR KEYS HERE -->
+const supabaseUrl = "https://fijhdnytbqbqouyonzfq.supabase.co"
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpamhkbnl0YnFicW91eW9uemZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjU1MzIsImV4cCI6MjA4ODg0MTUzMn0.Cq5uWbhL9sq-HOo7RJPGOOpI7baY4tnzEvbehGorVaM"
+
+/* create client */
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+async function login(){
+
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
+
+/* sign in */
+const { data, error } = await supabaseClient.auth.signInWithPassword({
+email: email,
+password: password
+})
+
+if(error){
+alert(error.message)
+return
+}
+
+/* get user */
+const { data: { user } } = await supabaseClient.auth.getUser()
+
+/* check profile */
+const { data: profile, error: profileError } = await supabaseClient
+.from("profiles")
+.select("*")
+.eq("user_id", user.id)
+.single()
+
+if(profile && !profileError){
+window.location.href = "screen.html"
+}else{
+window.location.href = "profile_setup.html"
+}
+
+}
+
+</script>
+
+</body>
+
+</html>
